@@ -44,7 +44,7 @@ int main()
 				printf("3 - editar informações do aluno(a)\n");
 				printf("4 - listar alunos(a)\n");
 
-				scanf("%i", &opcao);
+				scanf(" %i", &opcao);
 				printf("\n");
 				switch(opcao) {
 
@@ -125,7 +125,7 @@ void cadastro_aluno(aluno ListaAlunos[40], int *indexAluno, int *opcao) {
 	}
 	if(encontrado==1 || *opcao!=3) {
 		printf("digite a matrícula do aluno(a)\n");
-		scanf("%lld", &ListaAlunos[indexCadastro].matricula);
+		scanf(" %lld", &ListaAlunos[indexCadastro].matricula);
 
 		printf("digite o nome do aluno(a)\n");
 		scanf(" %49[^\n]", ListaAlunos[indexCadastro].nome);
