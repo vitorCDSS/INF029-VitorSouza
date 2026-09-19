@@ -37,16 +37,19 @@ int inserir_dados_aluno(aluno ListaAlunos[], int *indexAluno);
 void deletar_aluno(aluno ListaAlunos[], int *indexAluno);
 void listar_alunos(aluno ListaAlunos[], int *indexAluno);
 int pesquisar_aluno_por_matricula(aluno ListaAlunos[], int *indexAluno);
+void disciplinar_aluno(int DisciplinaEAlunos [] [], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int*indexAluno);
+void desdisciplinar_aluno(int DisciplinaEAlunos [] [], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int*indexAluno);
 
 int inserir_dados_professor(professor ListaProfessores[], int *indexProfessor);
 void deletar_professor(professor ListaProfessores[], int *indexProfessor);
 void listar_professores(professor ListaProfessores[], int *indexProfessor);
 int pesquisar_professor_por_matricula(professor ListaProfessores[], int *indexProfessor);
 
-void inserir_dados_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina, int *opcao);
+int inserir_dados_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[], int *indexProfessor);
 void deletar_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina);
-void listar_disciplinas(disciplina ListaDisciplinas[], int *indexDisciplina);
+void listar_disciplinas(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[]);
 void listar_disciplina_Detalhado(disciplina ListaDisciplinas[], int *indexDisciplina);
+int pesquisar_matricula_por_codigo(professor ListaDisciplinas[], int *indexDisciplina);
 
 int main()
 {
@@ -81,6 +84,7 @@ int main()
 				printf("3 - editar informações do aluno(a)\n");
 				printf("4 - listar alunos(as)\n");
 				printf("5 - cadastrar aluno(a) à uma disciplína\n");
+				printf("6 - remover aluno(a) de uma disciplína\n");
 
 				scanf(" %i", &opcao);
 				printf("\n");
@@ -117,7 +121,10 @@ int main()
 					listar_alunos(ListaAlunos, &indexAluno);
 					break;
 				case 5:
+					disciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
 					break;
+				case 6:
+					desdisciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
 				default:
 					printf("opção inválida\n\n");
 				}
@@ -188,6 +195,7 @@ int main()
 				printf("4 - listar disciplínas\n");
 				printf("5 - listar detalhado\n");
 				printf("6 - cadastrar aluno(a) à uma disciplína\n");
+				printf("7 - remover aluno(a) de uma disciplína\n");
 
 				scanf(" %i", &opcao);
 				printf("\n");
@@ -198,13 +206,22 @@ int main()
 					break;
 
 				case 1:
-					inserir_dados_disciplina(ListaDisciplinas, &indexDisciplina);
+					if(inserir_dados_disciplina( ListaDisciplinas[], *indexDisciplina, ListaProfessores[], *indexProfessor) == 1) {
+						ListaDisciplinas[indexDisciplina] = ListaDisciplinas[Max_disciplinas];
+						indexDisciplina++;
+					}
 					break;
 				case 2:
 					deletar_disciplina(ListaDisciplinas, &indexDisciplina);
 					break;
 				case 3:
-					inserir_dados_disciplina(ListaDisciplinas, &indexDisciplina);
+					int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas[], *indexDisciplina);
+					if(icont) {
+						printf("editando disciplína %s\n", ListaDisciplinas[icont].nome);
+
+						if(inserir_dados_disciplina(ListaDisciplinas[], *indexDisciplina, ListaProfessores[], *indexProfessor) == 1)
+							ListaDisciplinas[indexDisciplina] = ListaDisciplinas[Max_disciplinas];
+					}
 					break;
 				case 4:
 					listar_disciplinas(ListaDisciplinas, &indexDisciplina);
@@ -213,7 +230,10 @@ int main()
 					listar_disciplinaDetalhado(ListaDisciplinas, &indexDisciplina);
 					break;
 				case 6:
+					disciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
 					break;
+				case 7:
+					desdisciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
 				default:
 					printf("opção inválida\n\n");
 				}
@@ -351,26 +371,15 @@ int pesquisar_aluno_por_matricula (aluno ListaAlunos[], int *indexAluno) {
 	return 0;
 }
 void deletar_aluno(aluno ListaAlunos[], int *indexAluno) {
-	long long int MatriculaPesquisada;
-	int encontrado = 0;
-	printf("digite a matricula do aluno a ser deletado\n");
-	scanf(" %lld", &MatriculaPesquisada);
-	for(int icont=0; icont<*indexAluno; icont++) {
-		if(MatriculaPesquisada==ListaAlunos[icont].matricula) {
-			if(ListaAlunos[icont].sexo == 'f')
-				printf("aluna %s deletada\n", ListaAlunos[icont].nome);
-			else
-				printf("aluno %s deletado\n", ListaAlunos[icont].nome);
-			for(int jcont=icont; jcont<*indexAluno; jcont++) {
-				ListaAlunos[jcont]=ListaAlunos[jcont + 1];
-			}
-			(*indexAluno)--;
-			encontrado=1;
-			break;
-		}
+	int icont = pesquisar_aluno_por_matricula(ListaAlunos[], *indexAluno);
+	if(ListaAlunos[icont].sexo == 'f')
+		printf("aluna %s deletada\n", ListaAlunos[icont].nome);
+	else
+		printf("aluno %s deletado\n", ListaAlunos[icont].nome);
+	for(int jcont=icont; jcont<*indexAluno; jcont++) {
+		ListaAlunos[jcont]=ListaAlunos[jcont + 1];
 	}
-	if(encontrado==0)
-		printf("aluno(a) não encontrado\n");
+	(*indexAluno)--;
 }
 
 void listar_alunos(aluno ListaAlunos[], int *indexAluno) {
@@ -379,6 +388,16 @@ void listar_alunos(aluno ListaAlunos[], int *indexAluno) {
 	}
 }
 
+void disciplinar_aluno(int DisciplinaEAlunos [] [], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int *indexAluno) {
+	int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas[], *indexDisciplina);
+	int jcont = pesquisar_aluno_por_matricula(ListaAlunos[], *indexAluno);
+	DisciplinaEAlunos [icont] [jcont] = 1;
+}
+void desdisciplinar_aluno(int DisciplinaEAlunos [] [], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int *indexAluno) {
+	int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas[], *indexDisciplina);
+	int jcont = pesquisar_aluno_por_matricula(ListaAlunos[], *indexAluno);
+	DisciplinaEAlunos [icont] [jcont] = 0;
+}
 //parte dos professores:______________________________________________________________________________________________________
 
 int inserir_dados_professor(professor ListaProfessores[], int *indexProfessor) {
@@ -493,26 +512,15 @@ int pesquisar_professor_por_matricula(professor ListaProfessores[], int *indexPr
 }
 
 void deletar_professor(professor ListaProfessores[], int *indexProfessor) {
-	long long int MatriculaPesquisada;
-	int encontrado = 0;
-	printf("digite a matricula do professor a ser deletado\n");
-	scanf(" %lld", &MatriculaPesquisada);
-	for(int icont=0; icont<*indexProfessor; icont++) {
-		if(MatriculaPesquisada==ListaProfessores[icont].matricula) {
-			if(ListaProfessores[icont].sexo == 'f')
-				printf("professora %s deletada\n", ListaProfessores[icont].nome);
-			else
-				printf("professor %s deletado\n", ListaProfessores[icont].nome);
-			for(int jcont=icont; jcont<*indexProfessor; jcont++) {
-				ListaProfessores[jcont]=ListaProfessores[jcont + 1];
-			}
-			(*indexProfessor)--;
-			encontrado=1;
-			break;
-		}
+	int icont = pesquisar_professor_por_matricula(ListaProfessores[], *indexProfessor);
+	if(ListaProfessores[icont].sexo == 'f')
+		printf("professora %s deletada\n", ListaProfessores[icont].nome);
+	else
+		printf("professor %s deletado\n", ListaProfessores[icont].nome);
+	for(int jcont=icont; jcont<*indexProfessor; jcont++) {
+		ListaProfessores[jcont]=ListaProfessores[jcont + 1];
 	}
-	if(encontrado==0)
-		printf("professor(a) não encontrado\n");
+	(*indexProfessor)--;
 }
 
 void listar_professores(professor ListaProfessores[], int *indexProfessor) {
@@ -523,3 +531,86 @@ void listar_professores(professor ListaProfessores[], int *indexProfessor) {
 
 //parte das disciplínas:______________________________________________________________________________________________________
 
+int inserir_dados_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[], int *indexProfessor) {
+	printf("digite o nome da disciplina)\n");
+	scanf(" %lld", &ListaDisciplinas[Max_disciplinas].nome);
+
+	if(ListaDisciplinas[Max_disciplinas].nome <= 0) {
+		printf("nome invalido\n");
+		return 0;
+	}
+
+	for(int icont = 0; icont < *indexDisciplina; icont++) {
+		if(ListaDisciplinas[icont].nome == ListaDisciplinas[Max_disciplinas].nome) {
+			printf("nome invalido\n");
+			return 0;
+		}
+	}
+
+	printf("digite o semestre\n");
+	scanf(" %c", &ListaDisciplinas[Max_disciplinas].semestre);
+
+	if(ListaDisciplinas[Max_disciplinas].semestre <= 0 || ListaDisciplinas[Max_disciplinas].semestre > 10) {
+		printf("semestre invalido\n");
+		return 0;
+	}
+
+	printf("digite o codigo da disciplina\n");
+	scanf(" %lld", &ListaDisciplinas[Max_disciplinas].codigo);
+
+	if(ListaDisciplinas[Max_disciplinas].codigo <= 0) {
+		printf("codigo invalido\n");
+		return 0;
+	}
+
+	for(int icont = 0; icont < *indexDisciplina; icont++) {
+		if(ListaDisciplinas[icont].codigo == ListaDisciplinas[Max_disciplinas].codigo) {
+			printf("codigo invalido\n");
+			return 0;
+		}
+	}
+
+	printf("digite a matricula do professor(a) associado(a)\n");
+	int icont = pesquisar_professor_por_matricula (ListaProfessores[], *indexProfessor);
+	if(icont) {
+		ListaDisciplinas[Max_disciplinas].professorAssociado = ListaProfessores[icont]
+		        else
+			        return icont;
+
+		return 1;
+	}
+
+	int pesquisar_disciplina_por_codigo(disciplina ListaDisciplinas[], int *indexDisciplina) {
+		long long int CodigoPesquisado = 0;
+		int encontrado = 0;
+		printf("digite o codigo da disciplina a ser editada\n");
+		scanf(" %lld", &CodigoPesquisado);
+
+		if(CodigoPesquisado > 0) {
+			for(int icont=0; icont<*indexDisciplina; icont++) {
+				if(CodigoPesquisado==ListaDisciplinas[icont].matricula) {
+					return icont;
+				}
+			}
+		}
+		printf("disciplina não encontrada\n");
+		return 0;
+	}
+
+	void deletar_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina) {
+		int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas[], *indexDisciplina);
+		printf("disciplina %s deletada\n", ListaDisciplinas[icont].nome);
+		for(int jcont=icont; jcont<*indexDisciplina; jcont++) {
+			ListaDisciplinas[jcont]=ListaDisciplinas[jcont + 1];
+		}
+		(*indexDisciplina)--;
+	}
+
+	void listar_disciplinas(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[]) {
+		for(int icont=0; icont<*indexDisciplina; icont++) {
+			printf("nome: %s\ncodigo: %s\nsemestre: %d\n", ListaDisciplinas[icont].nome, ListaDisciplinas[icont].codigo, ListaDisciplinas[icont].semestre, ListaProfessores[icont].professorAssociado.nome);
+		}
+	}
+	void listar_disciplinas_Detalhado(disciplina ListaDisciplinas[], int *indexDisciplina) {
+
+	}
