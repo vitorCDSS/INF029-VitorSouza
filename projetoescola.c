@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #define Max_alunos 40
 #define Max_professores 40
 #define Max_disciplinas 40
@@ -28,44 +29,55 @@ typedef struct {
 	char nome[50];
 	char codigo[8];
 	int semestre;
-	professor professorAssociado;
+	long long int matriculaProfessor;
 } disciplina;
 
 void menu_principal();
 
-int inserir_dados_aluno(aluno ListaAlunos[], int *indexAluno);
-void deletar_aluno(aluno ListaAlunos[], int *indexAluno);
+int inserir_dados_aluno(aluno ListaAlunos[], int *indexAluno, int *excecao);
+void deletar_aluno(aluno ListaAlunos[], int *indexAluno, int *indexDisciplina, int DisciplinaEAlunos[][Max_alunos], long long int *Vies);
 void listar_alunos(aluno ListaAlunos[], int *indexAluno);
-int pesquisar_aluno_por_matricula(aluno ListaAlunos[], int *indexAluno);
-void disciplinar_aluno(int DisciplinaEAlunos [] [], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int*indexAluno);
-void desdisciplinar_aluno(int DisciplinaEAlunos [] [], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int*indexAluno);
+void ordenar_alunos_nome(aluno ListaAlunos[], int *indexAluno);
+void ordenar_alunos_nascismento(aluno ListaAlunos[], int *indexAluno);
+int pesquisar_aluno_por_matricula(aluno ListaAlunos[], int *indexAluno, long long int *Vies);
+void disciplinar_aluno(int DisciplinaEAlunos [] [Max_alunos], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int*indexAluno, long long int *Vies);
+void desdisciplinar_aluno(int DisciplinaEAlunos [] [Max_alunos], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int*indexAluno, long long int *Vies);
 
-int inserir_dados_professor(professor ListaProfessores[], int *indexProfessor);
-void deletar_professor(professor ListaProfessores[], int *indexProfessor);
+int inserir_dados_professor(professor ListaProfessores[], int *indexProfessor, int *excecao);
+void deletar_professor(professor ListaProfessores[], int *indexProfessor, long long int *Vies);
 void listar_professores(professor ListaProfessores[], int *indexProfessor);
-int pesquisar_professor_por_matricula(professor ListaProfessores[], int *indexProfessor);
+int pesquisar_professor_por_matricula(professor ListaProfessores[], int *indexProfessor, long long int *Vies);
 
-int inserir_dados_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[], int *indexProfessor);
-void deletar_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina);
-void listar_disciplinas(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[]);
-void listar_disciplina_Detalhado(disciplina ListaDisciplinas[], int *indexDisciplina);
-int pesquisar_matricula_por_codigo(professor ListaDisciplinas[], int *indexDisciplina);
+int inserir_dados_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[], int *indexProfessor, int *excecao, long long int *vies);
+void deletar_disciplina(disciplina ListaDisciplinas[], int *indexDisciplina, int *indexAluno, int DisciplinaEAlunos[][Max_alunos]);
+void listar_disciplinas(disciplina ListaDisciplinas[], int *indexDisciplina, professor ListaProfessores[], int *indexProfessor, long long int *vies);
+void listar_disciplinas_Detalhado(disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int *indexAluno, int DisciplinaEAlunos[][Max_alunos], professor ListaProfessores[], int *indexProfessor, long long int *Vies, char Cvies[]);
+int pesquisar_disciplina_por_codigo(disciplina ListaDisciplinas[], int *indexDisciplina, char Cvies[]);
 
 int main()
 {
 	int sair = 0;
 	int opcao = -1;
+	int excecao = 0;
+	long long int Vies = 0;
+	char Cvies[8];
+	Cvies[0] = '\0';
 	int indexAluno = 0;
 	int indexProfessor = 0;
 	int indexDisciplina = 0;
 	aluno ListaAlunos[Max_alunos+1];
 	professor ListaProfessores[Max_professores+1];
 	disciplina ListaDisciplinas[Max_disciplinas+1];
-	int DisciplinaEAlunos [Max_disciplinas+1] [Max_alunos+1];
-
+	int DisciplinaEAlunos [Max_disciplinas] [Max_alunos];
+	for(int icont = 0; icont < Max_disciplinas; icont++) {
+		for(int jcont = 0; jcont < Max_alunos; jcont++) {
+			DisciplinaEAlunos [icont] [jcont] = 0;
+		}
+	}
 	while(!sair) {
+		excecao = 0;
 		menu_principal();
-		scanf(" %i", &opcao);
+		scanf(" %d", &opcao);
 		printf("\n");
 		switch(opcao) {
 
@@ -86,7 +98,7 @@ int main()
 				printf("5 - cadastrar aluno(a) à uma disciplína\n");
 				printf("6 - remover aluno(a) de uma disciplína\n");
 
-				scanf(" %i", &opcao);
+				scanf(" %d", &opcao);
 				printf("\n");
 				switch(opcao) {
 
@@ -95,17 +107,29 @@ int main()
 					break;
 
 				case 1:
-					if(inserir_dados_aluno(ListaAlunos, &indexAluno) == 1) {
-						ListaAlunos[indexAluno] = ListaAlunos[Max_alunos];
-						indexAluno++;
+					excecao = -1;
+					if(indexAluno < Max_alunos) {
+						if(inserir_dados_aluno(ListaAlunos, &indexAluno, &excecao) == 1) {
+							ListaAlunos[indexAluno] = ListaAlunos[Max_alunos];
+							indexAluno++;
+							if(ListaAlunos[indexAluno-1].sexo == 'f')
+								printf("aluna %s cadastrada com sucesso\n", ListaAlunos[indexAluno-1].nome);
+							else
+								printf("aluno %s cadastrado com sucesso\n", ListaAlunos[indexAluno-1].nome);
+						}
 					}
+					else
+						printf("maximo de alunos atingido\n");
 					break;
 				case 2:
-					deletar_aluno(ListaAlunos, &indexAluno);
+					Vies = 0;
+					deletar_aluno(ListaAlunos, &indexAluno, &indexDisciplina, DisciplinaEAlunos, &Vies);
 					break;
 				case 3:
-					int icont = pesquisar_aluno_por_matricula (ListaAlunos[], *indexAluno);
-					if(icont) {
+					Vies=0;
+					int icont = pesquisar_aluno_por_matricula (ListaAlunos, &indexAluno, &Vies);
+					excecao = icont;
+					if(icont >= 0) {
 						printf("editando ");
 						if(ListaAlunos[icont].sexo == 'f')
 							printf("aluna");
@@ -113,20 +137,26 @@ int main()
 							printf("aluno");
 						printf(" %s\n", ListaAlunos[icont].nome);
 
-						if(inserir_dados_aluno(ListaAlunos, &indexAluno) == 1)
-							ListaAlunos[indexAluno] = ListaAlunos[Max_alunos];
+						if(inserir_dados_aluno(ListaAlunos, &indexAluno, &excecao) == 1) {
+							ListaAlunos[icont] = ListaAlunos[Max_alunos];
+							printf("alterações salvas");
+						}
 					}
 					break;
 				case 4:
 					listar_alunos(ListaAlunos, &indexAluno);
 					break;
 				case 5:
-					disciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
+					Vies = 0;
+					disciplinar_aluno(DisciplinaEAlunos, ListaDisciplinas, &indexDisciplina, ListaAlunos, &indexAluno, &Vies);
 					break;
 				case 6:
-					desdisciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
+					Vies = 0;
+					desdisciplinar_aluno(DisciplinaEAlunos, ListaDisciplinas, &indexDisciplina, ListaAlunos, &indexAluno, &Vies);
+					break;
 				default:
 					printf("opção inválida\n\n");
+					break;
 				}
 			}
 			break;
@@ -142,7 +172,7 @@ int main()
 				printf("3 - editar informações do professor(a)\n");
 				printf("4 - listar professores(as)\n");
 
-				scanf(" %i", &opcao);
+				scanf(" %d", &opcao);
 				printf("\n");
 				switch(opcao) {
 
@@ -151,17 +181,28 @@ int main()
 					break;
 
 				case 1:
-					if(inserir_dados_professor(ListaProfessores, &indexProfessor) == 1) {
-						ListaProfessores[indexProfessor] = ListaProfessores[Max_professores];
-						indexProfessor++;
+					excecao = -1;
+					if(indexProfessor < Max_professores) {
+						if(inserir_dados_professor(ListaProfessores, &indexProfessor, &excecao) == 1) {
+							ListaProfessores[indexProfessor] = ListaProfessores[Max_professores];
+							indexProfessor++;
+							if(ListaProfessores[indexProfessor-1].sexo == 'f')
+								printf("professora %s cadastrada com sucesso\n", ListaProfessores[indexProfessor-1].nome);
+							else
+								printf("professor %s cadastrado com sucesso\n", ListaProfessores[indexProfessor-1].nome);
+						}
 					}
+					else
+						printf("maximo de professores atingido\n");
 					break;
 				case 2:
-					deletar_professor(ListaProfessores, &indexProfessor);
+					deletar_professor(ListaProfessores, &indexProfessor, &Vies);
 					break;
 				case 3:
-					int icont = pesquisar_professor_por_matricula (ListaProfessores[], *indexProfessor);
-					if(icont) {
+					Vies=0;
+					int icont = pesquisar_professor_por_matricula (ListaProfessores, &indexProfessor, &Vies);
+					excecao = icont;
+					if(icont >= 0) {
 						printf("editando ");
 						if(ListaProfessores[icont].sexo == 'f')
 							printf("professora");
@@ -169,8 +210,8 @@ int main()
 							printf("professor");
 						printf(" %s\n", ListaProfessores[icont].nome);
 
-						if(inserir_dados_professor(ListaProfessores, &indexProfessor) == 1)
-							ListaProfessores[indexProfessor] = ListaProfessores[Max_professores];
+						if(inserir_dados_professor(ListaProfessores, &indexProfessor, &excecao) == 1)
+							ListaProfessores[icont] = ListaProfessores[Max_professores];
 					}
 					break;
 				case 4:
@@ -197,7 +238,7 @@ int main()
 				printf("6 - cadastrar aluno(a) à uma disciplína\n");
 				printf("7 - remover aluno(a) de uma disciplína\n");
 
-				scanf(" %i", &opcao);
+				scanf(" %d", &opcao);
 				printf("\n");
 				switch(opcao) {
 
@@ -206,163 +247,376 @@ int main()
 					break;
 
 				case 1:
-					if(inserir_dados_disciplina( ListaDisciplinas[], *indexDisciplina, ListaProfessores[], *indexProfessor) == 1) {
-						ListaDisciplinas[indexDisciplina] = ListaDisciplinas[Max_disciplinas];
-						indexDisciplina++;
+					excecao = -1;
+					Vies = 0;
+					if(indexDisciplina < Max_disciplinas) {
+						if(inserir_dados_disciplina( ListaDisciplinas, &indexDisciplina, ListaProfessores, &indexProfessor, &excecao, &Vies) == 1) {
+							ListaDisciplinas[indexDisciplina] = ListaDisciplinas[Max_disciplinas];
+							indexDisciplina++;
+							printf("disciplina %s cadastrada com sucesso\n", ListaDisciplinas[indexDisciplina-1].nome);
+						}
 					}
+					else
+						printf("maximo de disciplinas atingido\n");
+
 					break;
 				case 2:
-					deletar_disciplina(ListaDisciplinas, &indexDisciplina);
+					deletar_disciplina(ListaDisciplinas, &indexDisciplina, &indexAluno, DisciplinaEAlunos);
 					break;
 				case 3:
-					int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas[], *indexDisciplina);
-					if(icont) {
+					Vies = 0;
+					int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas, &indexDisciplina, "");
+					excecao = icont;
+					if(icont >= 0) {
 						printf("editando disciplína %s\n", ListaDisciplinas[icont].nome);
 
-						if(inserir_dados_disciplina(ListaDisciplinas[], *indexDisciplina, ListaProfessores[], *indexProfessor) == 1)
-							ListaDisciplinas[indexDisciplina] = ListaDisciplinas[Max_disciplinas];
+						if(inserir_dados_disciplina(ListaDisciplinas, &indexDisciplina, ListaProfessores, &indexProfessor, &excecao, &Vies) == 1)
+							ListaDisciplinas[icont] = ListaDisciplinas[Max_disciplinas];
 					}
 					break;
 				case 4:
-					listar_disciplinas(ListaDisciplinas, &indexDisciplina);
+					listar_disciplinas(ListaDisciplinas, &indexDisciplina, ListaProfessores, &indexProfessor, &Vies);
 					break;
 				case 5:
-					listar_disciplinaDetalhado(ListaDisciplinas, &indexDisciplina);
+					listar_disciplinas_Detalhado(ListaDisciplinas, &indexDisciplina, ListaAlunos, &indexAluno, DisciplinaEAlunos, ListaProfessores, &indexProfessor, &Vies, Cvies);
 					break;
 				case 6:
-					disciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
+					Vies = 0;
+					disciplinar_aluno(DisciplinaEAlunos, ListaDisciplinas, &indexDisciplina, ListaAlunos, &indexAluno, &Vies);
+					Vies = 0;
 					break;
 				case 7:
-					desdisciplinar_aluno(DisciplinaEAlunos [] [], ListaDisciplinas[], *indexDisciplina, ListaAlunos[], *indexAluno);
+					Vies = 0;
+					desdisciplinar_aluno(DisciplinaEAlunos, ListaDisciplinas, &indexDisciplina, ListaAlunos, &indexAluno, &Vies);
+					break;
 				default:
 					printf("opção inválida\n\n");
+					break;
 				}
 			}
 			break;
 		case 4:
 			printf("listas e relatórios\n");
-			break;
-		default:
-			printf("opção inválida\n\n");
+			int SairRelatorio = 0;
+			while(!SairDisciplina) {
+				opcao = -1;
+				printf("0 - voltar\n");
+				printf("1 - listar alunos ordenados\n"); //nome nascimento
+				printf("2 - filtrar alunos\n"); //sexo poucas disciplinas
+				printf("3 - listar professores ordenados\n"); //nome nascimento
+				printf("4 - filtrar professores por sexo\n"); 
+				printf("5 - pesquisar por nome\n"); //alunos e professores
+				printf("6 - aniversariante do mês\n"); //alunos e professores
+				printf("7 - listar disciplinas com mais de 40 vagas\n");
+
+				scanf(" %d", &opcao);
+				printf("\n");
+				switch(opcao) {
+
+				}
+				break;
+			default:
+				printf("opção inválida\n\n");
+			}
 		}
-	}
-	return 0;
-}
-
-void menu_principal() {
-	printf("projeto escola\n\n");
-	printf("0 - sair\n");
-	printf("1 - aluno\n");
-	printf("2 - professor\n");
-	printf("3 - disciplina\n");
-	printf("4 - relatórios\n");
-}
-
-//parte dos alunos______________________________________________________________________________________________________
-
-int inserir_dados_aluno(aluno ListaAlunos[], int *indexAluno) {
-
-	printf("digite a matrícula do aluno(a)\n");
-	scanf(" %lld", &ListaAlunos[Max_alunos].matricula);
-
-	if(ListaAlunos[Max_alunos].matricula <= 0) {
-		printf("matricula invalida\n");
 		return 0;
 	}
 
-	for(int icont = 0; icont < *indexAluno; icont++) {
-		if(ListaAlunos[icont].matricula == ListaAlunos[Max_alunos].matricula) {
+	void menu_principal() {
+		printf("projeto escola\n\n");
+		printf("0 - sair\n");
+		printf("1 - aluno\n");
+		printf("2 - professor\n");
+		printf("3 - disciplina\n");
+		printf("4 - relatórios\n");
+	}
+
+	//parte dos alunos______________________________________________________________________________________________________
+
+	int inserir_dados_aluno(aluno ListaAlunos[], int *indexAluno, int *excecao) {
+
+		printf("digite a matrícula do aluno(a)\n");
+		scanf(" %lld", &ListaAlunos[Max_alunos].matricula);
+
+		if(ListaAlunos[Max_alunos].matricula <= 0) {
 			printf("matricula invalida\n");
 			return 0;
 		}
-	}
 
-	printf("digite o nome do aluno(a)\n");
-	scanf(" %49[^\n]", ListaAlunos[Max_alunos].nome);
+		for(int icont = 0; icont < *indexAluno; icont++) {
+			if(ListaAlunos[icont].matricula == ListaAlunos[Max_alunos].matricula && icont != *excecao) {
+				printf("matricula invalida\n");
+				return 0;
+			}
+		}
 
-	if(ListaAlunos[Max_alunos].nome[0] == '\0') {
-		printf("nome invalido\n");
-		return 0;
-	}
+		printf("digite o nome do aluno(a)\n");
+		scanf(" %49[^\n]", ListaAlunos[Max_alunos].nome);
 
-	printf("digite o sexo do aluno(a) (m/f)\n");
-	scanf(" %c", &ListaAlunos[Max_alunos].sexo);
+		if(ListaAlunos[Max_alunos].nome[0] == '\0') {
+			printf("nome invalido\n");
+			return 0;
+		}
 
-	if(ListaAlunos[Max_alunos].sexo != 'm' && ListaAlunos[Max_alunos].sexo != 'f') {
-		printf("sexo invalido\n");
-		return 0;
-	}
+		printf("digite o sexo do aluno(a) (m/f)\n");
+		scanf(" %c", &ListaAlunos[Max_alunos].sexo);
 
-	int diasDoMes;
-	printf("digite a data de nascimento dia(dd) mês (mm) e ano (aaaa)\n");
-	scanf(" %d %d %d", &ListaAlunos[Max_alunos].dia, &ListaAlunos[Max_alunos].mes, &ListaAlunos[Max_alunos].ano);
+		if(ListaAlunos[Max_alunos].sexo != 'm' && ListaAlunos[Max_alunos].sexo != 'f') {
+			printf("sexo invalido\n");
+			return 0;
+		}
 
-	if(ListaAlunos[Max_alunos].ano <= 0) {
-		printf("ano inválido\n");
-		return 0;
-	}
+		int diasDoMes;
+		printf("digite a data de nascimento dia(dd) mês (mm) e ano (aaaa)\n");
+		scanf(" %d %d %d", &ListaAlunos[Max_alunos].dia, &ListaAlunos[Max_alunos].mes, &ListaAlunos[Max_alunos].ano);
 
-	switch(ListaAlunos[Max_alunos].mes) {
-	case 1:
-	case 3:
-	case 5:
-	case 7:
-	case 8:
-	case 10:
-	case 12:
-		diasDoMes = 31;
-		break;
+		if(ListaAlunos[Max_alunos].ano <= 0) {
+			printf("ano inválido\n");
+			return 0;
+		}
 
-	case 4:
-	case 6:
-	case 9:
-	case 11:
-		diasDoMes = 30;
-		break;
+		switch(ListaAlunos[Max_alunos].mes) {
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12:
+			diasDoMes = 31;
+			break;
 
-	case 2:
-		diasDoMes = 28;
-		if((ListaAlunos[Max_alunos].ano % 400) == 0 || ((ListaAlunos[Max_alunos].ano % 4) == 0 && (ListaAlunos[Max_alunos].ano % 100) != 0))
-			diasDoMes = 29;
-		break;
+		case 4:
+		case 6:
+		case 9:
+		case 11:
+			diasDoMes = 30;
+			break;
 
-	default:
-		printf("mês inválido\n");
-		return 0;
-	}
+		case 2:
+			diasDoMes = 28;
+			if((ListaAlunos[Max_alunos].ano % 400) == 0 || ((ListaAlunos[Max_alunos].ano % 4) == 0 && (ListaAlunos[Max_alunos].ano % 100) != 0))
+				diasDoMes = 29;
+			break;
 
-	if(ListaAlunos[Max_alunos].dia > diasDoMes || ListaAlunos[Max_alunos].dia <= 0) {
-		printf("dia inválido\n");
-		return 0;
-	}
+		default:
+			printf("mês inválido\n");
+			return 0;
+		}
 
-	printf("digite o CPF do aluno(a)\n");
-	scanf(" %lld", &ListaAlunos[Max_alunos].CPF);
+		if(ListaAlunos[Max_alunos].dia > diasDoMes || ListaAlunos[Max_alunos].dia <= 0) {
+			printf("dia inválido\n");
+			return 0;
+		}
 
-	if(ListaAlunos[Max_alunos].CPF <= 0) {
-		printf("CPF invalido\n");
-		return 0;
-	}
+		printf("digite o CPF do aluno(a)\n");
+		scanf(" %lld", &ListaAlunos[Max_alunos].CPF);
 
-	for(int icont = 0; icont < *indexAluno; icont++) {
-		if(ListaAlunos[icont].CPF == ListaAlunos[Max_alunos].CPF) {
+		if(ListaAlunos[Max_alunos].CPF <= 0) {
 			printf("CPF invalido\n");
 			return 0;
 		}
+
+		for(int icont = 0; icont < *indexAluno; icont++) {
+			if(ListaAlunos[icont].CPF == ListaAlunos[Max_alunos].CPF && icont != *excecao) {
+				printf("CPF invalido\n");
+				return 0;
+			}
+		}
+
+		return 1;
 	}
 
-	return 1;
-}
+	int pesquisar_aluno_por_matricula (aluno ListaAlunos[], int *indexAluno, long long int *Vies) {
+		long long int MatriculaPesquisada = 0;
+		int encontrado = 0;
+		if(*Vies == 0) {
+			printf("digite a matricula do(a) aluno(a) que deseja selecionar\n");
+			scanf(" %lld", &MatriculaPesquisada);
+		}
+		else
+			MatriculaPesquisada = *Vies;
 
-int pesquisar_aluno_por_matricula (aluno ListaAlunos[], int *indexAluno) {
-	long long int MatriculaPesquisada = 0;
-	int encontrado = 0;
-	printf("digite a matricula do(a) aluno(a) a ser editado(a)\n");
-	scanf(" %lld", &MatriculaPesquisada);
-
-	if(MatriculaPesquisada > 0) {
+		if(MatriculaPesquisada > 0) {
+			for(int icont=0; icont<*indexAluno; icont++) {
+				if(MatriculaPesquisada==ListaAlunos[icont].matricula) {
+					return icont;
+				}
+			}
+		}
+		printf("aluno não encontrado\n");
+		return -1;
+	}
+	void deletar_aluno(aluno ListaAlunos[], int *indexAluno, int *indexDisciplina, int DisciplinaEAlunos[][Max_alunos], long long int *Vies) {
+		int icont = pesquisar_aluno_por_matricula(ListaAlunos, indexAluno, Vies);
+		if(icont >= 0) {
+			if(ListaAlunos[icont].sexo == 'f')
+				printf("aluna %s deletada\n", ListaAlunos[icont].nome);
+			else
+				printf("aluno %s deletado\n", ListaAlunos[icont].nome);
+			for(int jcont=icont; jcont<*indexAluno-1; jcont++) {
+				ListaAlunos[jcont]=ListaAlunos[jcont + 1];
+				for(int kcont = 0; kcont<*indexDisciplina; kcont++) {
+					DisciplinaEAlunos [kcont] [jcont] = DisciplinaEAlunos [kcont] [jcont+1];
+				}
+			}
+			for (int kcont = 0; kcont < Max_disciplinas; kcont++) {
+				DisciplinaEAlunos[kcont][*indexAluno-1] = 0;
+			}
+			(*indexAluno)--;
+		}
+	}
+	void listar_alunos(aluno ListaAlunos[], int *indexAluno) {
 		for(int icont=0; icont<*indexAluno; icont++) {
-			if(MatriculaPesquisada==ListaAlunos[icont].matricula) {
+			printf("nome: %s\nmatricula: %lld\nsexo: %c\ndata de nascimento: %d %d %d\nCPF: %lld\n\n", ListaAlunos[icont].nome, ListaAlunos[icont].matricula, ListaAlunos[icont].sexo, ListaAlunos[icont].dia, ListaAlunos[icont].mes, ListaAlunos[icont].ano, ListaAlunos[icont].CPF);
+		}
+	}
+
+	void filtrar_alunos_sexo(aluno ListaAlunos[], int *indexAluno) {
+		char sexoPesquisado;
+		scanf(" %c", sexoPesquisado);
+		for(int icont=0; icont<*indexAluno; icont++) {
+			if(ListaAlunos[icont].sexo == sexoPesquisado) {
+				printf("nome: %s\nmatricula: %lld\nsexo: %c\ndata de nascimento: %d %d %d\nCPF: %lld\n\n", ListaAlunos[icont].nome, ListaAlunos[icont].matricula, ListaAlunos[icont].sexo, ListaAlunos[icont].dia, ListaAlunos[icont].mes, ListaAlunos[icont].ano, ListaAlunos[icont].CPF);
+			}
+		}
+	}
+
+	void ordenar_alunos_nome(aluno ListaAlunos[], int *indexAluno) {
+		aluno CopiaListaAlunos[Max_alunos];
+		aluno tro_K;
+		for (int kcont = 0; kcont < *indexAluno; kcont++) {
+			CopiaListaAlunos[kcont] = ListaAlunos[kcont];
+		}
+
+		for(int icont = 0; icont < *indexAluno; icont++) {
+			for(int jcont = icont; jcont < *indexAluno; jcont++) {
+				if(strcmp(CopiaListaAlunos[jcont].nome, CopiaListaAlunos[jcont+1].nome) > 0) {
+					tro_K = CopiaListaAlunos[jcont];
+					CopiaListaAlunos[jcont] = CopiaListaAlunos[jcont+1];
+					CopiaListaAlunos[jcont+1] = tro_K;
+				}
+			}
+		}
+
+		for(int kcont = 0; kcont < *indexAluno; kcont++) {
+			printf("nome: %s\nmatricula: %lld\nsexo: %c\ndata de nascimento: %d %d %d\nCPF: %lld\n\n", CopiaListaAlunos[kcont].nome, CopiaListaAlunos[kcont].matricula, CopiaListaAlunos[kcont].sexo, CopiaListaAlunos[kcont].dia, CopiaListaAlunos[kcont].mes, CopiaListaAlunos[kcont].ano, CopiaListaAlunos[kcont].CPF);
+		}
+	}
+
+	void ordenar_alunos_nascismento(aluno ListaAlunos[], int *indexAluno) {
+		aluno CopiaListaAlunos[Max_alunos];
+		aluno tro_K;
+		for (int kcont = 0; kcont < *indexAluno; kcont++) {
+			CopiaListaAlunos[kcont] = ListaAlunos[kcont];
+		}
+
+		for(int icont = 0; icont < *indexAluno; icont++) {
+			for(int jcont = icont; jcont < *indexAluno; jcont++) {
+				if(CopiaListaAlunos[jcont].ano*10000+CopiaListaAlunos[jcont].mes*100+CopiaListaAlunos[jcont].dia < CopiaListaAlunos[jcont+1].ano*10000+CopiaListaAlunos[jcont+1].mes*100+CopiaListaAlunos[jcont+1].dia) {
+					tro_K = CopiaListaAlunos[jcont];
+					CopiaListaAlunos[jcont] = CopiaListaAlunos[jcont+1];
+					CopiaListaAlunos[jcont+1] = tro_K;
+				}
+			}
+		}
+
+		for(int kcont = 0; kcont < *indexAluno; kcont++) {
+			printf("nome: %s\nmatricula: %lld\nsexo: %c\ndata de nascimento: %d %d %d\nCPF: %lld\n\n", CopiaListaAlunos[kcont].nome, CopiaListaAlunos[kcont].matricula, CopiaListaAlunos[kcont].sexo, CopiaListaAlunos[kcont].dia, CopiaListaAlunos[kcont].mes, CopiaListaAlunos[kcont].ano, CopiaListaAlunos[kcont].CPF);
+		}
+	}
+
+	void disciplinar_aluno(int DisciplinaEAlunos [] [Max_alunos], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int *indexAluno, long long int *Vies) {
+		int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas, indexDisciplina, "");
+		if(icont >= 0) {
+			int jcont = 1;
+			printf("digite -1 para sair ou ");
+			while(jcont>=0) {
+				jcont = pesquisar_aluno_por_matricula(ListaAlunos, indexAluno, Vies);
+				if(icont >= 0 && jcont >= 0) {
+					DisciplinaEAlunos [icont] [jcont] = 1;
+				}
+			}
+		}
+	}
+	void desdisciplinar_aluno(int DisciplinaEAlunos [] [Max_alunos], disciplina ListaDisciplinas[], int *indexDisciplina, aluno ListaAlunos[], int *indexAluno, long long int *Vies) {
+		int icont = pesquisar_disciplina_por_codigo(ListaDisciplinas, indexDisciplina, "");
+		if(icont >= 0) {
+			int jcont = 1;
+			printf("digite -1 para sair ou ");
+			while(jcont>=0) {
+				jcont = pesquisar_aluno_por_matricula(ListaAlunos, indexAluno, Vies);
+				if(icont >= 0 && jcont >=0) {
+					DisciplinaEAlunos [icont] [jcont] = 0;
+				}
+			}
+		}
+	}
+	//parte dos professores:______________________________________________________________________________________________________
+
+	int inserir_dados_professor(professor ListaProfessores[], int *indexProfessor, int *excecao) {
+
+		printf("digite a matrícula do professor(a)\n");
+		scanf(" %lld", &ListaProfessores[Max_professores].matricula);
+
+		if(ListaProfessores[Max_professores].matricula <= 0) {
+			printf("matricula invalida\n");
+			return 0;
+		}
+
+		for(int icont = 0; icont < *indexProfessor; icont++) {
+			if(ListaProfessores[icont].matricula == ListaProfessores[Max_professores].matricula && icont != *excecao) {
+				printf("matricula invalida\n");
+				return 0;
+			}
+		}
+
+		printf("digite o nome do professor(a)\n");
+		scanf(" %49[^\n]", ListaProfessores[Max_professores].nome);
+
+		if(ListaProfessores[Max_professores].nome[0] == '\0') {
+			printf("nome invalido\n");
+			return 0;
+		}
+
+		printf("digite o sexo do professor(a) (m/f)\n");
+		scanf(" %c", &ListaProfessores[Max_professores].sexo);
+
+		if(ListaProfessores[Max_professores].sexo != 'm' && ListaProfessores[Max_professores].sexo != 'f') {
+			printf("sexo invalido\n");
+			return 0;
+		}
+
+		int diasDoMes;
+		printf("digite a data de nascimento dia(dd) mês (mm) e ano (aaaa)\n");
+		scanf(" %d %d %d", &ListaProfessores[Max_professores].dia, &ListaProfessores[Max_professores].mes, &ListaProfessores[Max_professores].ano);
+
+		if(ListaProfessores[Max_professores].ano <= 0) {
+			printf("ano inválido\n");
+			return 0;
+		}
+
+		switch(ListaProfessores[Max_professores].mes) {
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12:
+			diasDoMes = 31;
+			break;
+
+		case 4:
+		case 6:
+		case 9:
+		case 11:
+			diasDoMes = 30;
+			break;
+
+		case 2:
+			diasDoMes = 28;
+			if((ListaProfessores[Max_professores].anomatricula) {
 				return icont;
 			}
 		}
