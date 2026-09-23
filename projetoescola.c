@@ -1,11 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
-#define Max_alunos 40
-#define Max_professores 40
-#define Max_disciplinas 40#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
 #include<ctype.h>
 #include<time.h>
 #define Max_alunos 40
