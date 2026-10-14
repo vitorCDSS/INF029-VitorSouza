@@ -23,9 +23,15 @@
 #include <stdio.h>
 #include "trabalho1.h" 
 #include <stdlib.h>
+#include <string.h>
+#include<ctype.h>
 
 DataQuebrada quebrar_data(char sData[]);
 int calcular_diasDoMes (int Mes, int Ano);
+
+void para_minusculo(char *destino, char *origem);
+
+int procura (int icresc, int jcresc, int *y, int *x, char palavra[], char matriz[][10]);
 
 
 DataQuebrada quebraData(char data[]);
@@ -156,15 +162,16 @@ int calcular_diasDoMes (int Mes, int Ano){
 DataQuebrada quebrar_data(char sData[]){
   int icont = 0;
   int jcont = 0;
-  char sDia[4];
-  char sMes[4];
-  char sAno[4];
+  char sDia[3];
+  char sMes[3];
+  char sAno[5];
 
    while(sData[icont] != '/'){
     sDia[jcont] = sData[icont];
     icont++;
     jcont++;
   }
+  sDia[3] = '\0';
   icont++;
   jcont = 0;
 
@@ -173,6 +180,7 @@ DataQuebrada quebrar_data(char sData[]){
     icont++;
     jcont++;
   }
+  sMes[3] = '\0';
   icont++;
   jcont = 0;
 
@@ -181,6 +189,7 @@ DataQuebrada quebrar_data(char sData[]){
     icont++;
     jcont++;
   }
+  sAno[5] = '\0';
   icont++;
   jcont = 0;
 
@@ -208,14 +217,12 @@ DataQuebrada quebrar_data(char sData[]){
 DiasMesesAnos q2(char datainicial[], char datafinal[])
 {
   
-    DataQuebrada idatainicial = quebrar_data(datainicial);
-    DataQuebrada idatafinal = quebrar_data(datafinal);
-    int difAno;
-    int ValorIni = 0;
-    int ValorFim = 0;
 
     //calcule os dados e armazene nas três variáveis a seguir
     DiasMesesAnos dma;
+    dma.qtdDias = 0;
+    dma.qtdMeses = 0;
+    dma.qtdAnos = 0;
 
     if (q1(datainicial) == 0){
       dma.retorno = 2;
@@ -223,56 +230,45 @@ DiasMesesAnos q2(char datainicial[], char datafinal[])
     }else if (q1(datafinal) == 0){
       dma.retorno = 3;
       return dma;
+    }else{
 
       //verifique se a data final não é menor que a data inicial
-    }else if ((idatainicial.iAno*10000 + idatainicial.iMes * 100 + idatainicial.iDia)<=(idatafinal.iAno * 10000 + idatafinal.iMes * 100 + idatafinal.iDia)){
+      DataQuebrada idatainicial = quebrar_data(datainicial);
+      DataQuebrada idatafinal = quebrar_data(datafinal);
+      if(idatainicial.iAno*10000 + idatainicial.iMes*100 + idatainicial.iDia <= idatafinal.iAno*10000 + idatafinal.iMes*100 + idatafinal.iDia){
       //calcule a distancia entre as datas
-      
-      difAno = idatainicial.iAno - idatafinal.iAno;
-
-      int jcont = 0;
-      for(int icont = 0; icont < idatainicial.iMes; icont++){
-        if(icont>12){
-          icont = 0;
-          jcont++;
+        if(idatainicial.iMes != idatafinal.iMes){
+          dma.qtdDias = (calcular_diasDoMes(idatainicial.iMes, idatainicial.iAno) - idatainicial.iDia) + idatafinal.iDia;
+          if(calcular_diasDoMes(idatainicial.iMes, idatainicial.iAno) <= dma.qtdDias){
+            dma.qtdDias -= calcular_diasDoMes(idatainicial.iMes, idatainicial.iAno);
+            dma.qtdMeses = 1;
+          }
+          if(idatafinal.iMes >= (idatainicial.iMes + 1)){
+            dma.qtdMeses += idatafinal.iMes - (idatainicial.iMes + 1);
+            dma.qtdAnos = idatafinal.iAno - (idatainicial.iAno);
+            dma.qtdAnos = (dma.qtdAnos < 0)? 0 : dma.qtdAnos;
+          }
+          else{
+            dma.qtdMeses += 12 - idatainicial.iMes + idatafinal.iMes;
+          }
         }
-        ValorIni += calcular_diasDoMes(icont, (idatainicial.iAno + jcont));
+        else{
+          dma.qtdDias = idatafinal.iDia - idatainicial.iDia;
+          dma.qtdMeses = 0;
+          dma.qtdAnos = idatafinal.iAno - idatainicial.iAno;
+        }
       }
-      ValorIni += idatainicial.iDia;
-
-      jcont = 0;
-      for(int icont = 0; icont < (idatafinal.iMes + (difAno)); icont++){
-        if(icont>12){
-          icont = 0;
-          jcont++;
-        }
-        ValorFim += calcular_diasDoMes(icont, (idatafinal.iAno + jcont));
-      }
-      ValorFim += idatafinal.iDia;
-
-      dma.qtdDias = ValorFim - ValorIni;
-
-      dma.qtdAnos = dma.qtdDias / 365;
-      dma.qtdDias = dma.qtdDias - dma.qtdAnos*365;
-      
-      jcont = 0;
-      for(int icont = idatainicial.iMes; icont < (idatafinal.iMes + (difAno)); icont++){
-        if(icont>12){
-          icont = 0;
-          jcont++;
-        }
-        dma.qtdDias -= calcular_diasDoMes(icont, (idatainicial.iAno + jcont));
-        dma.qtdMeses++;
+      else{
+        dma.retorno = 4;
+      return dma;
       }
 
+      //se tudo der certo
       dma.retorno = 1;
       return dma;
-    }
-    else{
-      dma.retorno = 4;
-      return dma;
-    } 
       
+    }
+    
 }
 
 /*
@@ -287,9 +283,35 @@ DiasMesesAnos q2(char datainicial[], char datafinal[])
  */
 int q3(char *texto, char c, int isCaseSensitive)
 {
-    int qtdOcorrencias = -1;
+    int qtdOcorrencias = 0;
 
+    if (isCaseSensitive != 1) {
+        char textinho[strlen(texto) + 1];
+        char cezinho = tolower((unsigned char)c);
+        para_minusculo(textinho, texto);
+
+        for (int icont = 0; textinho[icont] != '\0'; icont++) {
+            if (textinho[icont] == cezinho) {
+                qtdOcorrencias++;
+            }
+        }
+    } else {
+        for (int icont = 0; texto[icont] != '\0'; icont++) {
+            if (texto[icont] == c) {
+                qtdOcorrencias++;
+            }
+        }
+    }
     return qtdOcorrencias;
+}
+
+void para_minusculo(char *destino, char *origem) {
+  int jcont;
+	for (int icont = 0; origem[icont] != '\0'; icont++) {
+          destino[icont] = tolower((unsigned char)origem[icont]);
+          jcont = icont;
+	}
+	destino[jcont+1] = '\0';
 }
 
 /*
@@ -309,8 +331,43 @@ int q3(char *texto, char c, int isCaseSensitive)
  */
 int q4(char *strTexto, char *strBusca, int posicoes[30])
 {
-    int qtdOcorrencias = -1;
+    int qtdOcorrencias = 0;
+    int jcont = 0;
+    int kcont = 0;
+    int sequencia = 0;
+    int total = strlen(strBusca);
 
+    for (int icont = 0; strTexto[icont] != '\0'; icont++) {
+        jcont = 0;
+        sequencia = 0;
+        if (strTexto[icont] == strBusca[jcont]) {
+            if(jcont == 0){
+                int lcont = icont;                
+                while(sequencia < total){
+                    if (strTexto[lcont] == strBusca[jcont]){
+                        jcont++;
+                        sequencia++;
+                        lcont++;
+                    }
+                    else{
+                        break;   
+                    }         
+                }
+                if(sequencia == total){
+                    posicoes[kcont] = icont + 1;
+                    kcont++;
+                    posicoes[kcont] = lcont;
+                    kcont++;
+                    qtdOcorrencias++;
+                }
+                icont = lcont - 1;
+            }
+        }
+      }
+    //  for(int icont = 0; icont < kcont; icont++){
+    //    printf("psicoes %i \n", posicoes[icont]);
+    //  }
+     //printf("qtd ocorrencias %i \n", qtdOcorrencias);
     return qtdOcorrencias;
 }
 
@@ -326,8 +383,23 @@ int q4(char *strTexto, char *strBusca, int posicoes[30])
 
 int q5(int num)
 {
+  int mun = 0;
+  int multi = 1;
+  int icont = 1;
+  int temp;
 
-    return num;
+  while((num/multi) >= 10){
+     multi*=10;                
+  }
+    while(multi >= 1){
+      temp = (num / multi) % 10;
+      multi /= 10;
+      mun += temp * icont;
+      
+      icont*= 10;
+    }
+  num = mun;
+  return num;
 }
 
 /*
@@ -342,7 +414,31 @@ int q5(int num)
 
 int q6(int numerobase, int numerobusca)
 {
-    int qtdOcorrencias;
+    int qtdOcorrencias = 0;
+    long int multi = 1;
+    long int multiB = 1;
+    long int icont;
+
+    while((numerobusca/multiB) >= 10){
+      multiB*=10;                
+    }
+
+    while((numerobase/multi) >= 10){
+      multi*=10;                
+    }
+    icont = multi*10;
+    multi /= multiB;
+
+    while(multi >= 1){
+      if(((numerobase%icont)/multi) == numerobusca){
+        qtdOcorrencias++;
+        multi /= multiB;
+        icont /= multiB;
+      }
+      multi /= 10;
+      icont /= 10;
+    }
+
     return qtdOcorrencias;
 }
 
@@ -358,8 +454,49 @@ int q6(int numerobase, int numerobusca)
 
  int q7(char matriz[8][10], char palavra[5])
  {
-     int achou;
+    int achou = 0;
+
+    for(int icont = 0; icont < 8; icont++){
+      for(int jcont = 0; jcont < 10; jcont++){
+        if(matriz[icont][jcont] == palavra[0]){
+          if(jcont <= 5 && achou == 0){
+            achou = procura (0, 1, &icont, &jcont, palavra, matriz);
+          }
+          if(jcont <= 5 && icont <= 3 && achou == 0){
+            achou = procura (1, 1, &icont, &jcont, palavra, matriz);
+          }
+          if(icont <= 5 && achou == 0){
+            achou = procura (1, 0, &icont, &jcont, palavra, matriz);
+          }
+          if(jcont >= 4 && icont <= 3 && achou == 0){
+            achou = procura (1, -1, &icont, &jcont, palavra, matriz);
+          }
+          if(jcont >= 4 && achou == 0){
+            achou = procura (0, -1, &icont, &jcont, palavra, matriz);
+          }
+          if(jcont >= 4 && icont >= 4 && achou == 0){
+            achou = procura (-1, -1, &icont, &jcont, palavra, matriz);
+          }
+          if(icont >= 4 && achou == 0){
+            achou = procura (-1, 0, &icont, &jcont, palavra, matriz);
+          }
+          if(jcont <= 5 && icont >= 4 && achou == 0){
+            achou = procura (-1, 1, &icont, &jcont, palavra, matriz);
+          }
+        }
+      }
+    }
      return achou;
+ }
+
+ int procura (int icresc, int jcresc, int *y, int *x, char palavra[], char matriz[][10]){
+
+  for(int kcont = 1; kcont < 5; kcont++){
+    if(matriz[*y+icresc*kcont][*x+jcresc*kcont] != palavra[kcont]){
+      return 0;
+    }
+  }
+  return 1;
  }
 
 
