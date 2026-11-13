@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+void print_velha(char velha[][3]);
+
 int procuraX (int icresc, int jcresc, int y, int x, char velha[3][3]);
 int procuraO (int icresc, int jcresc, int y, int x, char velha[3][3]);
 
@@ -17,14 +19,9 @@ int main(){
     int jcont;
     int contagem = 0;
 
-    while(resultado == -1){
-        printf("  1 / 2 / 3 \n");
-        printf("A  %c / %c / %c \n", velha[0][0], velha[0][1], velha[0][2]);
-        printf("  _________\n");
-        printf("B  %c / %c / %c \n", velha[1][0], velha[1][1], velha[1][2]);
-        printf("  _________\n");
-        printf("C  %c / %c / %c \n", velha[2][0], velha[2][1], velha[2][2]);
+    print_velha(velha);
 
+    while(resultado == -1){
         do{
             printf("Jogador%d digite as coordenadas\n", vez);
             scanf(" %c %d", &ccont, &jcont);
@@ -53,7 +50,7 @@ int main(){
             voltar = 0;
             }
             else{
-                printf("joga direito animal");
+                printf("joga direito animal\n");
                 voltar = 1;
             }
         }while(voltar == 1);
@@ -89,13 +86,15 @@ int main(){
         if(resultado == -1)
             resultado = procuraO (0, 1, 1, 0, velha);
 
+        print_velha(velha);
+
         if(resultado == 1)
             printf("Jogador1 venceu\n"); 
         if(resultado == 2)
             printf("Jogador2 venceu\n");
 
         if(contagem >= 9){
-            printf("empate");
+            printf("empate\n");
             return 0;
         }
 
@@ -122,4 +121,13 @@ int procuraX (int icresc, int jcresc, int y, int x, char velha[3][3]){
     }
   }
   return 2;
+ }
+
+ void print_velha(char velha[][3]){
+    printf("  1 / 2 / 3 \n");
+    printf("A %c / %c / %c \n", velha[0][0], velha[0][1], velha[0][2]);
+    printf("  _________\n");
+    printf("B %c / %c / %c \n", velha[1][0], velha[1][1], velha[1][2]);
+    printf("  _________\n");
+    printf("C %c / %c / %c \n", velha[2][0], velha[2][1], velha[2][2]);
  }
