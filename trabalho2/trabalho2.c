@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define TAM 10
+#define Rpos posicao - 1
+#define tam vetorPrincipal[Rpos][0]
+#define percorrer_estrutura int icont; \
+        for(icont = 1; icont <= tam; icont++)
+#define percorrer_com_parada int icont; \
+        for(icont = 1; icont <= tam && vetorPrincipal[Rpos][icont] != 0; icont++){}
 
 #include "trabalho2.h"
 
-int vetorPrincipal[TAM];
-
-int (*matriz)[TAM] = malloc(0 * sizeof(*matriz));
+int *vetorPrincipal[TAM];
 /*
 Objetivo: criar estrutura auxiliar na posição 'posicao'.
 com tamanho 'tamanho'
@@ -20,22 +24,24 @@ Rertono (int)
 */
 int criarEstruturaAuxiliar(int posicao, int tamanho)
 {
-
-    int retorno = 0;
-
-    // a posicao pode já existir estrutura auxiliar
-    matriz[][posicao]
-    retorno = JA_TEM_ESTRUTURA_AUXILIAR;
     // se posição é um valor válido {entre 1 e 10}
-    retorno = POSICAO_INVALIDA;
+    if(posicao <1 || posicao > TAM)
+        return POSICAO_INVALIDA;
+    // a posicao pode já existir estrutura auxiliar
+    if(vetorPrincipal[Rpos] != NULL)
+        return JA_TEM_ESTRUTURA_AUXILIAR;
     // o tamanho ser muito grande
-    retorno = SEM_ESPACO_DE_MEMORIA;
     // o tamanho nao pode ser menor que 1
-    retorno = TAMANHO_INVALIDO;
+    if(tamanho < 1)
+        return TAMANHO_INVALIDO;
     // deu tudo certo, crie
-    retorno = SUCESSO;
-
-    return retorno;
+    int* vetorAux = (int*) calloc(tamanho+1, sizeof(int));
+    if(vetorAux == NULL)
+    return SEM_ESPACO_DE_MEMORIA;
+    else
+    vetorAux[0] = tamanho;
+    vetorPrincipal[Rpos] = vetorAux;
+    return SUCESSO;
 }
 
 /*
@@ -50,34 +56,33 @@ CONSTANTES
 int inserirNumeroEmEstrutura(int posicao, int valor)
 {
     int retorno = 0;
-    int existeEstruturaAuxiliar = 0;
-    int temEspaco = 0;
-    int posicao_invalida = 0;
+    int icont;
 
-    if (posicao_invalida)
-        retorno = POSICAO_INVALIDA;
+    if (posicao < 1 || posicao > TAM)
+        return POSICAO_INVALIDA;
     else
     {
         // testar se existe a estrutura auxiliar
-        if (existeEstruturaAuxiliar)
+        if(vetorPrincipal[Rpos] != NULL)
         {
-            if (temEspaco)
+            if (vetorPrincipal[Rpos][tam] == 0)
             {
+                for(icont = 1; vetorPrincipal[Rpos][icont] != 0 && icont <= tam; icont++){
+                }
+                vetorPrincipal[Rpos][icont] = valor;
                 //insere
-                retorno = SUCESSO;
+                return SUCESSO;
             }
             else
             {
-                retorno = SEM_ESPACO;
+                return SEM_ESPACO;
             }
         }
         else
         {
-            retorno = SEM_ESTRUTURA_AUXILIAR;
+            return SEM_ESTRUTURA_AUXILIAR;
         }
     }
-
-    return retorno;
 }
 
 /*
@@ -93,8 +98,26 @@ Rertono (int)
 */
 int excluirNumeroDoFinaldaEstrutura(int posicao)
 {
-    int retorno = SUCESSO;
-    return retorno;
+    int estrutura_vazia = 1;
+
+    if(posicao < 1 || posicao > 10){
+        return POSICAO_INVALIDA;
+    }else{
+        if(vetorPrincipal[Rpos] == NULL){
+            return SEM_ESTRUTURA_AUXILIAR;
+        }
+        else{
+            percorrer_estrutura{if(vetorPrincipal[Rpos][icont] != 0){estrutura_vazia = 0; break;}}
+            if(estrutura_vazia){
+                return ESTRUTURA_AUXILIAR_VAZIA;
+            }
+            else{
+                percorrer_com_parada
+                vetorPrincipal[Rpos][icont-1] = 0;
+                return SUCESSO;
+            }
+        }
+    }
 }
 
 /*
@@ -112,9 +135,33 @@ Rertono (int)
 */
 int excluirNumeroEspecificoDeEstrutura(int posicao, int valor)
 {
-    int retorno = SUCESSO;
-    return retorno;
-}
+    int estrutura_vazia = 1;
+
+    if(posicao < 1 || posicao > 10){
+        return POSICAO_INVALIDA;
+    }
+    else{
+        if(vetorPrincipal[Rpos] == NULL){
+            return SEM_ESTRUTURA_AUXILIAR;
+        }
+        else{
+            percorrer_estrutura{if(vetorPrincipal[Rpos][icont] != 0){estrutura_vazia = 0; break;}}
+            if(estrutura_vazia){
+                return ESTRUTURA_AUXILIAR_VAZIA;
+            }
+            else{
+                percorrer_estrutura{if(vetorPrincipal[Rpos][icont] == valor) break;}
+                if(icont == tam+1 && vetorPrincipal[Rpos][icont] != valor)
+                    return NUMERO_INEXISTENTE;
+                for(; icont < tam && vetorPrincipal[Rpos][icont] != 0; icont++){
+                    vetorPrincipal[Rpos][icont] = vetorPrincipal[Rpos][icont]+1;
+                }
+                vetorPrincipal[Rpos][tam] = 0;
+                return SUCESSO;
+            }
+        }
+    }
+} //ainda tá dando erro
 
 // se posição é um valor válido {entre 1 e 10}
 int ehPosicaoValida(int posicao)
