@@ -2,13 +2,30 @@
 #include <stdlib.h>
 #define TAM 10
 #define Rpos posicao - 1
+#define posAtual vetorPrincipal[Rpos][icont]
 #define tam vetorPrincipal[Rpos][0]
 #define percorrer_estrutura int icont; \
         for(icont = 1; icont <= tam; icont++)
 #define percorrer_com_parada int icont; \
-        for(icont = 1; icont <= tam && vetorPrincipal[Rpos][icont] != 0; icont++){}
+        for(icont = 1; icont <= tam && posAtual != 0; icont++){}
 
 #include "trabalho2.h"
+
+void insertionSort(int N, int arr[])
+{
+    for (int i = 1; i < N; i++)
+    {
+        int key = arr[i];
+        int j = i - 1;
+
+        while (j >= 0 && arr[j] > key)
+        {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
 
 int *vetorPrincipal[TAM];
 /*
@@ -35,12 +52,12 @@ int criarEstruturaAuxiliar(int posicao, int tamanho)
     if(tamanho < 1)
         return TAMANHO_INVALIDO;
     // deu tudo certo, crie
-    int* vetorAux = (int*) calloc(tamanho+1, sizeof(int));
-    if(vetorAux == NULL)
+    int* vetAux = (int*) calloc(tamanho+1, sizeof(int));
+    if(vetAux == NULL)
     return SEM_ESPACO_DE_MEMORIA;
     else
-    vetorAux[0] = tamanho;
-    vetorPrincipal[Rpos] = vetorAux;
+    vetAux[0] = tamanho;
+    vetorPrincipal[Rpos] = vetAux;
     return SUCESSO;
 }
 
@@ -67,9 +84,9 @@ int inserirNumeroEmEstrutura(int posicao, int valor)
         {
             if (vetorPrincipal[Rpos][tam] == 0)
             {
-                for(icont = 1; vetorPrincipal[Rpos][icont] != 0 && icont <= tam; icont++){
+                for(icont = 1; posAtual != 0 && icont <= tam; icont++){
                 }
-                vetorPrincipal[Rpos][icont] = valor;
+                posAtual = valor;
                 //insere
                 return SUCESSO;
             }
@@ -107,7 +124,7 @@ int excluirNumeroDoFinaldaEstrutura(int posicao)
             return SEM_ESTRUTURA_AUXILIAR;
         }
         else{
-            percorrer_estrutura{if(vetorPrincipal[Rpos][icont] != 0){estrutura_vazia = 0; break;}}
+            percorrer_estrutura{if(posAtual != 0){estrutura_vazia = 0; break;}}
             if(estrutura_vazia){
                 return ESTRUTURA_AUXILIAR_VAZIA;
             }
@@ -145,23 +162,23 @@ int excluirNumeroEspecificoDeEstrutura(int posicao, int valor)
             return SEM_ESTRUTURA_AUXILIAR;
         }
         else{
-            percorrer_estrutura{if(vetorPrincipal[Rpos][icont] != 0){estrutura_vazia = 0; break;}}
+            percorrer_estrutura{if(posAtual != 0){estrutura_vazia = 0; break;}}
             if(estrutura_vazia){
                 return ESTRUTURA_AUXILIAR_VAZIA;
             }
             else{
-                percorrer_estrutura{if(vetorPrincipal[Rpos][icont] == valor) break;}
-                if(icont == tam+1 && vetorPrincipal[Rpos][icont] != valor)
+                percorrer_estrutura{if(posAtual == valor) break;}
+                if(icont == tam+1 && posAtual != valor)
                     return NUMERO_INEXISTENTE;
-                for(; icont < tam && vetorPrincipal[Rpos][icont] != 0; icont++){
-                    vetorPrincipal[Rpos][icont] = vetorPrincipal[Rpos][icont]+1;
+                for(; icont < tam && posAtual != 0; icont++){
+                    posAtual = vetorPrincipal[Rpos][icont+1];
                 }
                 vetorPrincipal[Rpos][tam] = 0;
                 return SUCESSO;
             }
         }
     }
-} //ainda tá dando erro
+}
 
 // se posição é um valor válido {entre 1 e 10}
 int ehPosicaoValida(int posicao)
@@ -187,10 +204,18 @@ Retorno (int)
 */
 int getDadosEstruturaAuxiliar(int posicao, int vetorAux[])
 {
-
-    int retorno = 0;
-
-    return retorno;
+    if(posicao < 1 || posicao > 10){
+        return POSICAO_INVALIDA;
+    }
+    else{
+        if(vetorPrincipal[Rpos] == NULL){
+            return SEM_ESTRUTURA_AUXILIAR;
+        }
+        else{
+            percorrer_estrutura{if(posAtual != 0)vetorAux[icont-1] = posAtual;}
+            return SUCESSO;
+        }
+    }
 }
 
 /*
@@ -204,10 +229,11 @@ Rertono (int)
 */
 int getDadosOrdenadosEstruturaAuxiliar(int posicao, int vetorAux[])
 {
-
-    int retorno = 0;
-
-    
+    int retorno;
+    retorno = getDadosEstruturaAuxiliar(posicao, vetorAux);
+    if(retorno == SUCESSO){ 
+        insertionSort(tam, vetorAux);
+    }
     return retorno;
 }
 
@@ -221,9 +247,10 @@ Rertono (int)
 */
 int getDadosDeTodasEstruturasAuxiliares(int vetorAux[])
 {
-
-    int retorno = 0;
-    return retorno;
+    for(int jcont = 0; jcont < 10; jcont++){
+        getDadosEstruturaAuxiliar(jcont, vetorAux);
+        if 
+    }
 }
 
 /*
