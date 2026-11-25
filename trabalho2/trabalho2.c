@@ -73,7 +73,6 @@ CONSTANTES
 int inserirNumeroEmEstrutura(int posicao, int valor)
 {
     int retorno = 0;
-    int icont;
 
     if (posicao < 1 || posicao > TAM)
         return POSICAO_INVALIDA;
@@ -84,8 +83,7 @@ int inserirNumeroEmEstrutura(int posicao, int valor)
         {
             if (vetorPrincipal[Rpos][tam] == 0)
             {
-                for(icont = 1; posAtual != 0 && icont <= tam; icont++){
-                }
+                percorrer_com_parada
                 posAtual = valor;
                 //insere
                 return SUCESSO;
@@ -232,7 +230,8 @@ int getDadosOrdenadosEstruturaAuxiliar(int posicao, int vetorAux[])
     int retorno;
     retorno = getDadosEstruturaAuxiliar(posicao, vetorAux);
     if(retorno == SUCESSO){ 
-        insertionSort(tam, vetorAux);
+        percorrer_com_parada
+        insertionSort(icont-1, vetorAux);
     }
     return retorno;
 }
@@ -247,9 +246,21 @@ Rertono (int)
 */
 int getDadosDeTodasEstruturasAuxiliares(int vetorAux[])
 {
-    for(int jcont = 0; jcont < 10; jcont++){
+    int kcont = 0;
+
+    for(int jcont = 0; jcont < TAM; jcont++){
         getDadosEstruturaAuxiliar(jcont, vetorAux);
-        if 
+        if(vetorPrincipal[jcont] != NULL){
+            if(vetorPrincipal[jcont][1] == 0){
+                kcont++;
+            }
+        }
+    }
+    if(kcont == TAM){
+        return TODAS_ESTRUTURAS_AUXILIARES_VAZIAS;
+    }
+    else{
+        return SUCESSO;
     }
 }
 
@@ -263,8 +274,12 @@ Rertono (int)
 */
 int getDadosOrdenadosDeTodasEstruturasAuxiliares(int vetorAux[])
 {
-
     int retorno = 0;
+    int tamanhoAux = sizeof(int) / sizeof(vetorAux[0]);
+
+    retorno = getDadosDeTodasEstruturasAuxiliares(vetorAux);
+    insertionSort(tamanhoAux ,vetorAux);
+
     return retorno;
 }
 
